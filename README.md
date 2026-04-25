@@ -4,7 +4,7 @@ Installation guide and post-install fix for Zorin OS 18 (Ubuntu 24.04 base) on a
 
 ## TL;DR
 
-The Ubiquity installer can target an IMSM array but doesn't include the right driver hooks in initramfs. Without a post-install chroot fix, the system installs cleanly, GRUB loads, the kernel starts — and then drops to a `(initramfs)` BusyBox prompt because it can't assemble the RAID container in time to mount root.
+The Ubiquity installer can target an IMSM array but doesn't include the right driver hooks in initramfs. Without a post-install chroot fix, the system installs cleanly, GRUB loads, the kernel starts - and then drops to a `(initramfs)` BusyBox prompt because it can't assemble the RAID container in time to mount root.
 
 The fix is to chroot into the fresh install and reinstall `mdadm` + `dmraid`, then rebuild initramfs and GRUB before the first reboot.
 

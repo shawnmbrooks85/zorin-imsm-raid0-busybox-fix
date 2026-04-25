@@ -2,7 +2,7 @@
 
 If you already rebooted before running the chroot fix and you're staring at an `(initramfs)` prompt right now, you have two paths.
 
-## Path A — Recover from BusyBox directly (sometimes works)
+## Path A - Recover from BusyBox directly (sometimes works)
 
 At the `(initramfs)` prompt, see what the kernel found:
 
@@ -29,7 +29,7 @@ sudo reboot
 
 This is the no-USB recovery path. It works often enough to try, but if `ls /dev/md*` shows nothing, skip to Path B.
 
-## Path B — Recover from a live USB (always works)
+## Path B - Recover from a live USB (always works)
 
 This is the same procedure as the post-install chroot fix, just done after a botched first boot instead of as part of the install.
 
@@ -81,4 +81,4 @@ update-initramfs -u -k all
 
 Reboot and try again.
 
-If even that fails, the issue is likely that the IMSM container metadata on the drives is corrupted or the BIOS is presenting the array oddly. Boot to BIOS, check Intel RST status — both members should be "Member Disk(0)" of a "Volume" with status "Normal". If anything's off (Failed, Missing, Rebuild), the problem is below the OS layer and the install will keep failing until the array is healthy at the firmware level.
+If even that fails, the issue is likely that the IMSM container metadata on the drives is corrupted or the BIOS is presenting the array oddly. Boot to BIOS, check Intel RST status - both members should be "Member Disk(0)" of a "Volume" with status "Normal". If anything's off (Failed, Missing, Rebuild), the problem is below the OS layer and the install will keep failing until the array is healthy at the firmware level.

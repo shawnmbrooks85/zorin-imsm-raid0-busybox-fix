@@ -5,15 +5,15 @@ End-to-end procedure for installing Zorin OS onto an Intel IMSM RAID 0 array. As
 ## Prerequisites
 
 - Zorin OS install USB (any version based on Ubuntu 22.04+)
-- BIOS in UEFI mode, Secure Boot off (or signed with mdadm/dmraid trust — easier to disable)
+- BIOS in UEFI mode, Secure Boot off (or signed with mdadm/dmraid trust - easier to disable)
 - Intel RST RAID 0 volume created in BIOS, both NVMes as members
 - Working keyboard, ideally a wired one (laptop keyboards on the Alienware can be flaky in early initramfs)
 
-## Step 0 — Boot the live USB
+## Step 0 - Boot the live USB
 
 Boot to the USB, pick **Try Zorin** (not Install yet). Land at the live desktop.
 
-## Step 1 — Verify the array
+## Step 1 - Verify the array
 
 Open a terminal:
 
@@ -33,12 +33,12 @@ nvme1n1     259:1    0  3.7T  0 disk
 ```
 
 - `md126` is the actual RAID 0 volume (this is what you partition)
-- `md127` is the IMSM container (0B is normal — it's metadata, not storage)
+- `md127` is the IMSM container (0B is normal - it's metadata, not storage)
 - If `md126` already has partitions/LVM under it from a previous attempt, run `scripts/01-prep-array.sh` to nuke them
 
 **Do not open the GNOME Disks utility at any point during this process.** It auto-mounts and probes things behind your back, which causes the partition kernel-busy errors that ate hours of my life.
 
-## Step 2 — Pre-create partitions and format ESP from terminal
+## Step 2 - Pre-create partitions and format ESP from terminal
 
 This is the critical step that lets the installer succeed. We create the partitions and pre-format the ESP as FAT32 ourselves, because the installer's own format step fails on IMSM arrays in subtle ways related to leftover filesystem signatures.
 
@@ -57,11 +57,11 @@ Expected output from `lsblk -f`:
 
 If `lsblk -f` shows that, you're good. If `md126p1` shows `ext4` or anything other than `vfat`, repeat `mkfs.vfat`.
 
-## Step 3 — Run the installer
+## Step 3 - Run the installer
 
 Launch **Install Zorin OS** from the desktop. Click through Language, Keyboard, etc.
 
-At **Updates and other software**: pick whatever you want (normal or minimal install). Tick "Install third-party software" — you'll need NVIDIA bits and codecs.
+At **Updates and other software**: pick whatever you want (normal or minimal install). Tick "Install third-party software" - you'll need NVIDIA bits and codecs.
 
 At **Installation type**: pick **Something else** → Continue.
 
@@ -71,7 +71,7 @@ You'll see a partition list. Configure as follows:
 1. Click the row to highlight
 2. Click **Change...**
 3. Use as: **EFI System Partition**
-4. **Leave the Format checkbox UNTICKED** — we already formatted it
+4. **Leave the Format checkbox UNTICKED** - we already formatted it
 5. OK
 
 ### `/dev/md126p2` (the 8.2 TB partition)
@@ -92,7 +92,7 @@ Click **Install Now** → **Continue** on the "Write changes" popup.
 
 Fill in user details, timezone, etc. Let the installer run.
 
-## Step 4 — STOP. Do not reboot.
+## Step 4 - STOP. Do not reboot.
 
 When the installation finishes, a popup appears asking **Restart Now** or **Continue Testing**.
 
@@ -100,7 +100,7 @@ When the installation finishes, a popup appears asking **Restart Now** or **Cont
 
 If you reboot here, you will drop into a BusyBox initramfs prompt and have to redo this from a live USB chroot anyway. Don't.
 
-## Step 5 — Chroot fix (the actual important part)
+## Step 5 - Chroot fix (the actual important part)
 
 Back in a terminal in the live session:
 
@@ -125,7 +125,7 @@ What this does:
 - `update-initramfs -u -k all` rebuilds the initramfs for every installed kernel, baking in mdadm/dmraid hooks so initramfs can assemble the IMSM container at boot
 - `update-grub` regenerates `/boot/grub/grub.cfg` with the correct root reference
 
-You'll see a lot of output including some `Running in chroot, ignoring command 'daemon-reload'` messages. Those are harmless — systemd inside a chroot can't talk to the outer host's systemd, and it doesn't need to.
+You'll see a lot of output including some `Running in chroot, ignoring command 'daemon-reload'` messages. Those are harmless - systemd inside a chroot can't talk to the outer host's systemd, and it doesn't need to.
 
 What you want to see in the output:
 
@@ -140,7 +140,7 @@ Found linux image: /boot/vmlinuz-6.x.x-xx-generic
 Found initrd image: /boot/initrd.img-6.x.x-xx-generic
 ```
 
-## Step 6 — Unmount and reboot
+## Step 6 - Unmount and reboot
 
 Back outside the chroot:
 
@@ -153,7 +153,7 @@ sudo reboot
 
 When the system POSTs, **pull the USB stick** so it doesn't boot back into the live environment.
 
-## Step 7 — First boot
+## Step 7 - First boot
 
 You should land at the GRUB menu, then the Zorin splash, then the login screen. Log in.
 
@@ -170,7 +170,7 @@ df -h /
 ## Optional post-install
 
 - Install NVIDIA drivers if you didn't tick the third-party box: `sudo ubuntu-drivers autoinstall`
-- Add a swapfile (skip swap partition — pointless on a stripe):
+- Add a swapfile (skip swap partition - pointless on a stripe):
   ```bash
   sudo fallocate -l 8G /swapfile
   sudo chmod 600 /swapfile
@@ -178,4 +178,4 @@ df -h /
   sudo swapon /swapfile
   echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
   ```
-- Set up timeshift or similar — RAID 0 is a backup-or-die situation
+- Set up timeshift or similar - RAID 0 is a backup-or-die situation

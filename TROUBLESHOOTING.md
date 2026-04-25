@@ -58,7 +58,7 @@ After the reboot, **don't open Disks utility** before going back to terminal wor
 
 ## "Cannot get exclusive access to /dev/md126" when running mdadm --stop
 
-**Cause:** Same as above — something has the array open. LVM is the most common culprit, but stale udisks references will do it too.
+**Cause:** Same as above - something has the array open. LVM is the most common culprit, but stale udisks references will do it too.
 
 **Fix:**
 ```bash
@@ -102,7 +102,7 @@ sudo mdadm --detail /dev/md126
 
 If a member is missing, one NVMe might be loose, dead, or excluded from the IMSM volume in BIOS. Reboot to BIOS, check Intel RST status, reseat the NVMes.
 
-If the array is fine in BIOS but Linux sees it degraded, that's an mdadm assembly issue — `sudo update-initramfs -u -k all` and reboot.
+If the array is fine in BIOS but Linux sees it degraded, that's an mdadm assembly issue - `sudo update-initramfs -u -k all` and reboot.
 
 ## GRUB doesn't appear, system boots straight to firmware setup
 

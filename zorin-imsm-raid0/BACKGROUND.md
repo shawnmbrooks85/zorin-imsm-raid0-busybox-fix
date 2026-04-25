@@ -4,7 +4,7 @@ If you just want it to work, follow `INSTALL.md`. This document explains what's 
 
 ## What is IMSM?
 
-Intel Matrix Storage Manager (IMSM), now branded Intel Rapid Storage Technology (RST), is **firmware-assisted RAID**. The RAID metadata lives on the drives in an Intel-defined format, and the BIOS option ROM presents the array as if it were a single disk during boot. Once the OS loads, though, all the actual RAID work is done by the OS — Intel's "RAID" controller is really just a metadata format and a BIOS shim.
+Intel Matrix Storage Manager (IMSM), now branded Intel Rapid Storage Technology (RST), is **firmware-assisted RAID**. The RAID metadata lives on the drives in an Intel-defined format, and the BIOS option ROM presents the array as if it were a single disk during boot. Once the OS loads, though, all the actual RAID work is done by the OS - Intel's "RAID" controller is really just a metadata format and a BIOS shim.
 
 On Linux, IMSM arrays are assembled by `mdadm` (the same tool used for native Linux software RAID), but using a different metadata format. `mdadm` knows how to read Intel's metadata, find the member drives, and present the array as `/dev/md126` (the volume) plus `/dev/md127` (the empty container holding the metadata).
 
@@ -15,17 +15,17 @@ Ubuntu's installer (Ubiquity, used by Zorin and most Ubuntu derivatives) can det
 But Ubiquity ships an initramfs that doesn't include `dmraid` or, on some kernels, the right mdadm hooks for IMSM specifically. So when you boot:
 
 1. **Firmware** sees the array (because Intel's option ROM presents it as a single disk in the boot list)
-2. **GRUB loads** from the ESP (also fine — GRUB has its own driver layer)
+2. **GRUB loads** from the ESP (also fine - GRUB has its own driver layer)
 3. **Kernel starts** loading from initramfs
 4. **Initramfs** tries to find `/dev/md126p2` to mount as root
 5. **It can't**, because the assembly tools and udev rules needed to bring the IMSM container up aren't in initramfs
 6. After a timeout, the boot scripts give up and drop you to a `(initramfs)` BusyBox prompt
 
-The fix — installing `mdadm` and `dmraid` in the *target system* and rebuilding initramfs — bakes those tools into the boot environment so step 5 succeeds.
+The fix - installing `mdadm` and `dmraid` in the *target system* and rebuilding initramfs - bakes those tools into the boot environment so step 5 succeeds.
 
 ## Why pre-formatting the ESP matters
 
-When you partition `/dev/md126` and the installer formats the ESP, it uses `mkfs.vfat` under the hood. But the installer's wrapper around it has a known issue on IMSM arrays where it fails if the partition has any pre-existing filesystem signature — and partitions on a freshly created GPT can sometimes inherit signatures from previous metadata in the same physical sectors (especially after multiple install attempts).
+When you partition `/dev/md126` and the installer formats the ESP, it uses `mkfs.vfat` under the hood. But the installer's wrapper around it has a known issue on IMSM arrays where it fails if the partition has any pre-existing filesystem signature - and partitions on a freshly created GPT can sometimes inherit signatures from previous metadata in the same physical sectors (especially after multiple install attempts).
 
 The error you'll see is:
 
@@ -35,7 +35,7 @@ The simplest workaround is to format the ESP yourself before launching the insta
 
 ## Why bootloader target must be /dev/md126
 
-If you let the installer write GRUB to `/dev/nvme0n1`, it writes to the GPT of one physical drive. But that drive contains a *stripe* of the array — half of every block, interleaved with the other drive. The ESP filesystem isn't readable from a single member; it only exists at the array level.
+If you let the installer write GRUB to `/dev/nvme0n1`, it writes to the GPT of one physical drive. But that drive contains a *stripe* of the array - half of every block, interleaved with the other drive. The ESP filesystem isn't readable from a single member; it only exists at the array level.
 
 In practice this might *appear* to work because EFI firmware sees the IMSM array as a logical disk and reads the ESP that way. But you've created a fragile setup where the bootloader install location and the actual filesystem location disagree, and updates (`grub-install` re-runs after kernel updates) can write to the wrong place.
 
@@ -48,7 +48,7 @@ The installer's "Erase disk and install" mode makes assumptions about layout:
 - It defaults to LVM-on-encrypted or LVM-plain
 - It writes GRUB to whichever device it considers the "main" disk
 
-On IMSM, the "main disk" detection is unreliable — you sometimes get GRUB on a single member NVMe, and the LVM defaults add a layer that makes recovery harder if anything goes wrong. "Something else" gives you control over all three of the things that matter: partition layout, filesystem types, and bootloader target.
+On IMSM, the "main disk" detection is unreliable - you sometimes get GRUB on a single member NVMe, and the LVM defaults add a layer that makes recovery harder if anything goes wrong. "Something else" gives you control over all three of the things that matter: partition layout, filesystem types, and bootloader target.
 
 ## Why the kernel-busy errors happen
 
@@ -61,7 +61,7 @@ If any of those are violated, the kernel keeps the *old* partition table and `pa
 
 In a normal workflow (boot live USB → make partitions → install), you don't hit this. But if you've already had one failed install, the kernel has stale references and the next attempt's `mkfs` fails with "Device or resource busy."
 
-The clean solution is a reboot. Heroic measures — `kpartx`, `dmsetup remove_all`, stopping the array, etc. — sometimes work but often don't. Reboot is faster.
+The clean solution is a reboot. Heroic measures - `kpartx`, `dmsetup remove_all`, stopping the array, etc. - sometimes work but often don't. Reboot is faster.
 
 ## Should you use IMSM at all?
 
@@ -88,11 +88,11 @@ Probably not, unless you have a specific reason:
    ```
 4. Partition `/dev/md0` and install normally
 
-Native mdadm is fully supported by Ubuntu's default initramfs — no chroot fix needed, no surprises on kernel updates. The downside is Windows can't read it, and switching the BIOS mode after Windows is installed requires Windows-side tweaks (or a reinstall) to avoid an Inaccessible Boot Device BSOD.
+Native mdadm is fully supported by Ubuntu's default initramfs - no chroot fix needed, no surprises on kernel updates. The downside is Windows can't read it, and switching the BIOS mode after Windows is installed requires Windows-side tweaks (or a reinstall) to avoid an Inaccessible Boot Device BSOD.
 
 ## RAID 0 risk reminder
 
-RAID 0 doubles the surface area for failure. With two drives at the same MTBF, your effective MTBF is roughly halved. If either drive fails, all data is gone — there's no parity, no mirror, nothing to rebuild from.
+RAID 0 doubles the surface area for failure. With two drives at the same MTBF, your effective MTBF is roughly halved. If either drive fails, all data is gone - there's no parity, no mirror, nothing to rebuild from.
 
 This is fine for:
 - Workstations where data lives in version control / cloud sync
